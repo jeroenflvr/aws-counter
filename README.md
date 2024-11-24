@@ -3,7 +3,7 @@
 ## Introduction
 **Limited to using an aws profile, for now.**
 
-Counts objects and total object size in a given bucket.
+Counts objects and total object size in a given bucket. Using delimiter, each request is limited to a single prefix, recursive and async.
 
 ## Usage
 
