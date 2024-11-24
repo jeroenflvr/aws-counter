@@ -8,18 +8,22 @@ Counts objects and total object size in a given bucket. Using delimiter, each re
 ## Usage
 
 ```shell
-$ aws-counter --profile <my-profile> --bucket <my-bucket> 
+$ aws-counter --profile <my-profile> --bucket <my-bucket> --debug
+Debug mode is on
 bucket: <my-bucket>  
 profile:  <my-profile>
-|- prefix_01/
-|- prefix_01/sub/
-- ... object_1
-- ... object_2
-- ... object_3
-- ... object_4
+ |- prefix_01/
+ |- prefix_01/sub/
+ - ... object_1
+ - ... object_2
+ - ... object_3
+ - ... object_4
 
-  Total Objects: 4
-  Total Size: 38.32 MB (40178340 bytes)
+Total Objects: 4
+Total Size: 38.32 MB (40178340 bytes)
+  
+Total #requests: 4
+  
 $ 
 ```
 
