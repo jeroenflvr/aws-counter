@@ -1,4 +1,3 @@
-// use std::env;
 use aws_config::BehaviorVersion;
 use aws_config::default_provider::credentials::DefaultCredentialsChain;
 use aws_config::default_provider::region::DefaultRegionChain;
@@ -118,13 +117,15 @@ async fn main() {
 
     let mut bucket_request = BucketRequest::new(client, bucket);
 
-    _ = bucket_request.list_objects("").await;
-
-    bucket_request.items.summary();
-
-    // _ = list_objects(&client, bucket).await;
-
-
+    match bucket_request.list_objects("").await {
+        Ok(_) => {
+            bucket_request.items.summary();
+        },
+        Err(e) => {
+            eprintln!("Something went wrong: {}", e);
+            return
+        }
+    }
 
 
 }
