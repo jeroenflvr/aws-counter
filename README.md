@@ -33,7 +33,7 @@ $
 ```shell
 $ cargo build --release
 Compiling aws-counter v0.1.0 (/projects/aws-counter)
-Finished `release` profile [optimized] target(s) in 1.70s
+Finished `release` profile [optimized] target(s) in 58.85s
 $ 
 ```
 
