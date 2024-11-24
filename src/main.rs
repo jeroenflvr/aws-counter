@@ -1,10 +1,10 @@
-use aws_config::BehaviorVersion;
 use aws_config::default_provider::credentials::DefaultCredentialsChain;
 use aws_config::default_provider::region::DefaultRegionChain;
-use error::S3ExampleError;
+use aws_config::BehaviorVersion;
 use aws_sdk_s3::types::Object as AwsObject;
 use aws_sdk_s3::Client;
-use clap::{Parser};
+use clap::Parser;
+use error::S3ExampleError;
 use helpers::helpers::bytes_to_human_readable_string;
 
 pub mod error;
@@ -16,22 +16,27 @@ struct Args {
     #[arg(short, long)]
     profile: String,
     #[arg(short, long)]
-    bucket: String
+    bucket: String,
 }
 
 pub struct BucketObjects {
     prefixes: Vec<String>,
-    objects: Vec<AwsObject>
+    objects: Vec<AwsObject>,
 }
 
 impl BucketObjects {
     fn summary(self) {
-
-        let t = self.objects.iter().fold(0, |acc, obj|
-                acc + obj.size.unwrap());
+        let t = self
+            .objects
+            .iter()
+            .fold(0, |acc, obj| acc + obj.size.unwrap());
 
         println!("Total Objects: {}", self.objects.len());
-        println!("Total Size: {} ({} bytes)", bytes_to_human_readable_string(t), t);
+        println!(
+            "Total Size: {} ({} bytes)",
+            bytes_to_human_readable_string(t),
+            t
+        );
     }
 }
 
@@ -45,7 +50,7 @@ impl BucketRequest {
     fn new(client: Client, bucket: String) -> Self {
         let prefixes = Vec::new();
         let objects = Vec::new();
-        let items = BucketObjects{prefixes, objects};
+        let items = BucketObjects { prefixes, objects };
         Self {
             client,
             bucket,
@@ -54,7 +59,8 @@ impl BucketRequest {
     }
 
     pub async fn list_objects(&mut self, prefix: &str) -> Result<(), S3ExampleError> {
-        let mut response = self.client
+        let mut response = self
+            .client
             .list_objects_v2()
             .bucket(self.bucket.to_owned())
             .delimiter("/")
@@ -66,17 +72,16 @@ impl BucketRequest {
         while let Some(result) = response.next().await {
             match result {
                 Ok(output) => {
-
                     for object in output.contents() {
                         println!(" - {}", object.key().unwrap_or("Unknown"));
                         self.items.objects.push(object.to_owned());
                     }
-                    for prefix in output.common_prefixes(){
-                        if let Some(p) = prefix.prefix(){
+                    for prefix in output.common_prefixes() {
+                        if let Some(p) = prefix.prefix() {
                             println!(" |- {}", p);
                             _ = Box::pin(self.list_objects(p)).await;
                             self.items.prefixes.push(p.to_string());
-                            }
+                        }
                     }
                 }
                 Err(err) => {
@@ -87,13 +92,10 @@ impl BucketRequest {
 
         Ok(())
     }
-
 }
-
 
 #[tokio::main]
 async fn main() {
-
     let args = Args::parse();
 
     let bucket = args.bucket;
@@ -102,8 +104,11 @@ async fn main() {
     println!("bucket: {}", bucket);
     println!("profile: {}", profile);
 
-
-    let region = DefaultRegionChain::builder().profile_name(&profile).build().region().await;
+    let region = DefaultRegionChain::builder()
+        .profile_name(&profile)
+        .build()
+        .region()
+        .await;
 
     let creds = DefaultCredentialsChain::builder()
         .profile_name(&profile)
@@ -111,7 +116,11 @@ async fn main() {
         .build()
         .await;
 
-    let config = aws_config::defaults(BehaviorVersion::v2024_03_28()).credentials_provider(creds).region(region).load().await;
+    let config = aws_config::defaults(BehaviorVersion::v2024_03_28())
+        .credentials_provider(creds)
+        .region(region)
+        .load()
+        .await;
 
     let client = Client::new(&config);
 
@@ -120,12 +129,10 @@ async fn main() {
     match bucket_request.list_objects("").await {
         Ok(_) => {
             bucket_request.items.summary();
-        },
+        }
         Err(e) => {
             eprintln!("Something went wrong: {}", e);
-            return
+            return;
         }
     }
-
-
 }

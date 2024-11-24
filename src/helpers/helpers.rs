@@ -1,5 +1,4 @@
 pub fn bytes_to_human_readable_string(bytes: i64) -> String {
-
     if bytes == 0 {
         return "0 B".to_string();
     }
