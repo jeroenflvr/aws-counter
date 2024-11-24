@@ -12,6 +12,7 @@ $ aws-counter --profile <my-profile> --bucket <my-bucket> --debug
 Debug mode is on
 bucket: <my-bucket>  
 profile:  <my-profile>
+
  |- prefix_01/
  |- prefix_01/sub/
  - ... object_1
