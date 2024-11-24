@@ -75,7 +75,7 @@ impl BucketRequest {
             .bucket(self.bucket.to_owned())
             .delimiter("/")
             .prefix(prefix)
-            .max_keys(10) // In this example, go 10 at a time.
+            .max_keys(1000) // 1000 is max
             .into_paginator()
             .send();
 
