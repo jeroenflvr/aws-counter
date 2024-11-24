@@ -6,9 +6,15 @@ use aws_sdk_s3::Client;
 use clap::Parser;
 use error::S3ExampleError;
 use helpers::helpers::bytes_to_human_readable_string;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
 
 pub mod error;
 mod helpers;
+
+lazy_static! {
+    static ref DEBUG: Mutex<bool> = Mutex::new(false);
+}
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -17,6 +23,8 @@ struct Args {
     profile: String,
     #[arg(short, long)]
     bucket: String,
+    #[arg(short, long)]
+    debug: bool,
 }
 
 pub struct BucketObjects {
@@ -31,9 +39,9 @@ impl BucketObjects {
             .iter()
             .fold(0, |acc, obj| acc + obj.size.unwrap());
 
-        println!("Total Objects: {}", self.objects.len());
+        println!("\nTotal Objects: {}", self.objects.len());
         println!(
-            "Total Size: {} ({} bytes)",
+            "Total Size: {} ({} bytes)\n",
             bytes_to_human_readable_string(t),
             t
         );
@@ -44,6 +52,7 @@ pub struct BucketRequest {
     client: Client,
     bucket: String,
     items: BucketObjects,
+    request_count: u64,
 }
 
 impl BucketRequest {
@@ -55,6 +64,7 @@ impl BucketRequest {
             client,
             bucket,
             items,
+            request_count: 0,
         }
     }
 
@@ -69,16 +79,22 @@ impl BucketRequest {
             .into_paginator()
             .send();
 
+        self.request_count += 1;
+
         while let Some(result) = response.next().await {
             match result {
                 Ok(output) => {
                     for object in output.contents() {
-                        println!(" - {}", object.key().unwrap_or("Unknown"));
+                        if *DEBUG.lock().unwrap() {
+                            println!(" - {}", object.key().unwrap_or("Unknown"));
+                        };
                         self.items.objects.push(object.to_owned());
                     }
                     for prefix in output.common_prefixes() {
                         if let Some(p) = prefix.prefix() {
-                            println!(" |- {}", p);
+                            if *DEBUG.lock().unwrap() {
+                                println!(" |- {}", p);
+                            };
                             _ = Box::pin(self.list_objects(p)).await;
                             self.items.prefixes.push(p.to_string());
                         }
@@ -98,11 +114,18 @@ impl BucketRequest {
 async fn main() {
     let args = Args::parse();
 
+    // TODO: setup logging facility
+    *DEBUG.lock().unwrap() = args.debug;
+
+    if *DEBUG.lock().unwrap() {
+        println!("Debug mode is on");
+    }
+
     let bucket = args.bucket;
     let profile = args.profile;
 
     println!("bucket: {}", bucket);
-    println!("profile: {}", profile);
+    println!("profile: {}\n", profile);
 
     let region = DefaultRegionChain::builder()
         .profile_name(&profile)
@@ -132,7 +155,11 @@ async fn main() {
         }
         Err(e) => {
             eprintln!("Something went wrong: {}", e);
-            return;
         }
     }
+
+    if *DEBUG.lock().unwrap() {
+        println!("Total #requests: {}\n", bucket_request.request_count);
+    }
+
 }

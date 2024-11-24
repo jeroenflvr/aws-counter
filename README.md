@@ -64,3 +64,4 @@ use [awscli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-in
 ## TODO
 - [ ] arc mutex on update from coroutine
 - [ ] limit concurrency (semaphore)
+- [ ] setup logging facility

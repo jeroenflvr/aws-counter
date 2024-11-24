@@ -11,3 +11,4 @@ pub fn bytes_to_human_readable_string(bytes: i64) -> String {
 
     return format!("{:.2} {}", readable, units[index as usize]);
 }
+

@@ -8,3 +8,6 @@ aws-config = "1.5.10"
 aws-sdk-s3 = "1.62.0"
 clap = { version = "4.5.21", features = ["derive"] }
 tokio = { version = "1.41.1", features = ["rt", "rt-multi-thread", "macros"] }
+lazy_static = "1.5.0"
+log = "0.4.22"
+env_logger = "0.11.5"
